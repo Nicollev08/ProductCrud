@@ -1,148 +1,131 @@
 package com.example.productcrud
 
-import android.app.ProgressDialog
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.gson.JsonObject
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 
-
-@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var apiProducts: ApiProducts
-    private var progressDialog: ProgressDialog? = null
+    private lateinit var productAdapter: ProductAdapter
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        apiProducts =  RetrofitHelper.getInstance().create(ApiProducts::class.java)
 
-        findViewById<Button>(R.id.btnGet).setOnClickListener{
-            getProducts()
+        apiProducts = RetrofitHelper.getInstance().create(ApiProducts::class.java)
+        recyclerView = findViewById(R.id.recyclerView)
+
+        // Configura el RecyclerView y el adaptador
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Configura el listener para manejar la eliminación del producto
+        productAdapter = ProductAdapter(emptyList()) { product ->
+            showDeleteConfirmationDialog(product.id)
         }
-        findViewById<Button>(R.id.btnGetId).setOnClickListener{
-            getProductById("6")
-        }
-        findViewById<Button>(R.id.btnUpdate).setOnClickListener{
-            updateProduct()
-        }
-        findViewById<Button>(R.id.btnDelete).setOnClickListener{
-            deleteProduct()
-        }
-        findViewById<Button>(R.id.btnCreate).setOnClickListener{
-            createProduct()
+        recyclerView.adapter = productAdapter
+
+        // Realiza la carga inicial de productos
+        getProducts()
+
+
+        val btnSave = findViewById<Button>(R.id.btnSave)
+        btnSave.setOnClickListener {
+            // Lógica para obtener datos del formulario y crear un nuevo producto
+            createProductFromForm()
         }
     }
 
-    private fun getProducts(){
+    private fun getProducts() {
         lifecycleScope.launch {
-            showLoading("Espere por favor")
-
             try {
                 val productList = apiProducts.getProducts()
-
-                // Check if the list is not null or empty
-                if (productList.isNullOrEmpty()) {
-                    Log.e("ooooo", "getProducts Error: Empty product list")
-                } else {
-                    Log.e("ooooo", "getProducts Success: $productList")
-                }
+                productAdapter.updateData(productList)
             } catch (e: Exception) {
                 Log.e("ooooo", "getProducts Exception: ${e.message}")
-            } finally {
-                progressDialog?.dismiss()
             }
         }
     }
 
-    private fun getProductById(productId: String) {
-        lifecycleScope.launch {
-            showLoading("Espere por favor")
+    private fun showDeleteConfirmationDialog(productId: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar producto")
+            .setMessage("¿Estás seguro de que deseas eliminar este producto?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteProduct(productId)
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
 
+    private fun deleteProduct(productId: Int) {
+        lifecycleScope.launch {
             try {
-                val response = apiProducts.getProductById(productId)
+                val response = apiProducts.deleteProduct(productId)
 
                 if (response.isSuccessful) {
-                    val productResponse = response.body()
-
-                    if (productResponse != null) {
-                        Log.e("ooooo", "getProductById Success: $productResponse")
-                    } else {
-                        Log.e("ooooo", "getProductById Error: Response body is null")
-                    }
+                    // Actualiza la lista después de la eliminación
+                    getProducts()
+                    Toast.makeText(applicationContext, "Producto eliminado correctamente", Toast.LENGTH_SHORT).show()
                 } else {
-                    Log.e("ooooo", "getProductById Error: ${response.code()} - ${response.errorBody()?.string()}")
+                    Toast.makeText(applicationContext, "Error al eliminar el producto", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Log.e("ooooo", "getProductById Exception: ${e.message}")
-            } finally {
-                progressDialog?.dismiss()
+                Log.e("ooooo", "deleteProduct Exception: ${e.message}")
+                Toast.makeText(applicationContext, "Error al eliminar el producto", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun updateProduct(){
+    private fun createProductFromForm() {
+        val nameEditText = findViewById<EditText>(R.id.editTextName)
+        val descriptionEditText = findViewById<EditText>(R.id.editTextDescription)
+        val priceEditText = findViewById<EditText>(R.id.editTextPrice)
+        val quantityEditText = findViewById<EditText>(R.id.editTextQuantity)
+        val statusEditText = findViewById<EditText>(R.id.editTextStatus)
+        val subcategoryIdEditText = findViewById<EditText>(R.id.editTextSubcategoryId)
+
+        val newProduct = Product(
+            id = 0,  // Puedes establecer un valor predeterminado para el ID o manejarlo de otra manera
+            name = nameEditText.text.toString(),
+            description = descriptionEditText.text.toString(),
+            image_path = "",  // Puedes manejar la lógica para la imagen según tu implementación
+            price = priceEditText.text.toString().toDouble(),
+            quantity = quantityEditText.text.toString().toInt(),
+            status = statusEditText.text.toString().toInt(),
+            subcategory_id = subcategoryIdEditText.text.toString().toInt()
+        )
+
+        // Llama al método para crear el producto
+        createProduct(newProduct)
+    }
+
+    private fun createProduct(newProduct: Product) {
         lifecycleScope.launch {
-            showLoading("Actualizando")
-            val body = JsonObject().apply {
+            try {
+                val response = apiProducts.createProduct(newProduct)
 
-                addProperty("name", "laura")
-                addProperty("description", "nicole")
-                addProperty("price", 123)
-                addProperty("quantity", 123)
-                addProperty("status", 1)
-                addProperty("subcategory_id", 1)
-
+                if (response.isSuccessful) {
+                    // Producto creado con éxito
+                    // Puedes actualizar la lista de productos o realizar otras acciones si es necesario
+                    getProducts()
+                    Toast.makeText(applicationContext, "Producto creado correctamente", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(applicationContext, "Error al crear el producto", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ooooo", "createProduct Exception: ${e.message}")
+                Toast.makeText(applicationContext, "Error al crear el producto", Toast.LENGTH_SHORT).show()
             }
-            val result = apiProducts.updateProduct("10", body)
-            if(result.isSuccessful){
-                Log.e("ooooo", "updateProduct Success: ${result.body()}")
-            }else{
-                Log.e("ooooo", "updateProductById Field: ${result.message()}")
-            }
-            progressDialog?.dismiss()
         }
-    }
-
-    private fun deleteProduct(){
-        lifecycleScope.launch{
-            showLoading("eliminando...")
-            val result = apiProducts.deleteProduct("17")
-            if(result.isSuccessful){
-                Log.e("ooooo", "deleteProduct Success ${result.body()}")
-            }else{
-                Log.e("ooooo", "deleteProduct Field ${result.message()}")
-            }
-            progressDialog?.dismiss()
-        }
-    }
-
-    private fun createProduct(){
-        lifecycleScope.launch{
-            showLoading("creando...")
-            val body = JsonObject().apply {
-                addProperty("name", "GERMANNNN")
-                addProperty("description", "nicole")
-                addProperty("price", 321)
-                addProperty("quantity", 123)
-                addProperty("status", 1)
-                addProperty("subcategory_id", 1)
-            }
-            val result = apiProducts.createProduct(body)
-            if(result.isSuccessful){
-                Log.e("ooooo", "createProduct Success ${result.body()}")
-            }else{
-                Log.e("ooooo", "createProduct Failed ${result.message()}")
-            }
-            progressDialog?.dismiss()
-        }
-    }
-
-    private fun showLoading(msg: String){
-        progressDialog = ProgressDialog.show(this, null, msg, true)
     }
 }

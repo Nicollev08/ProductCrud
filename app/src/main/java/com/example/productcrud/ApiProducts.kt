@@ -14,15 +14,14 @@ interface ApiProducts {
     @GET("/api/products")
     suspend fun getProducts(): List<Product>
 
-    @GET("/api/products/{id}")
-    suspend fun getProductById(@Path("id") id: String): Response<Product>
+    @POST("/api/products")
+    suspend fun createProduct(@Body product: Product): Response<Product>
 
     @PUT("/api/products/{id}")
     suspend fun updateProduct(@Path("id") id: String, @Body body:JsonObject): Response<JsonObject>
 
     @DELETE("/api/products/{id}")
-    suspend fun deleteProduct(@Path("id") id: String): Response<JsonObject>
+    suspend fun deleteProduct(@Path("id") productId: Int): Response<Unit>
 
-    @POST("/api/products")
-    suspend fun createProduct(@Body body: JsonObject): Response<JsonObject>
+
 }
