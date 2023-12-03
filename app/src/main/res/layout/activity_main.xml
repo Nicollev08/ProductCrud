@@ -14,51 +14,11 @@
         android:padding="10dp"
         android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/editTextName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nombre"/>
-
-        <EditText
-            android:id="@+id/editTextDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Descripción"/>
-
-        <EditText
-            android:id="@+id/editTextPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="Precio"/>
-
-        <EditText
-            android:id="@+id/editTextQuantity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="Cantidad"/>
-
-        <EditText
-            android:id="@+id/editTextStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="Estado"/>
-
-        <EditText
-            android:id="@+id/editTextSubcategoryId"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="ID de la subcategoría"/>
-
         <Button
-            android:id="@+id/buttonCreateProduct"
+            android:id="@+id/btnCreate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Crear Producto"/>
+            android:text="Nuevo producto"/>
 
     </LinearLayout>
 

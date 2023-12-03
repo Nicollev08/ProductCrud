@@ -9,4 +9,22 @@ data class Product(
     var quantity: Int,
     var status: Int,
     var subcategory_id: Int
-)
+
+){
+    fun updateFromForm(
+        name: String,
+        description: String,
+        price: Double,
+        quantity: Int,
+        status: Int,
+        subcategoryId: Int
+    ) {
+        this.name = name
+        this.description = description
+        this.price = price
+        this.quantity = quantity
+        this.status = status
+        this.subcategory_id = subcategoryId
+    }
+
+}

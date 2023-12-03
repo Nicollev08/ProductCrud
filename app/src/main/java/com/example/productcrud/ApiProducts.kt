@@ -16,11 +16,13 @@ interface ApiProducts {
 
     @POST("/api/products")
     suspend fun createProduct(@Body product: Product): Response<Product>
+
     @PUT("/api/products/{id}")
-    suspend fun updateProduct(@Path("id") id: String, @Body body:JsonObject): Response<JsonObject>
+    suspend fun updateProduct(@Path("id") id: String, @Body product: Product): Response<Product>
+
 
     @DELETE("/api/products/{id}")
-    suspend fun deleteProduct(@Path("id") id: String): Response<JsonObject>
+    suspend fun deleteProduct(@Path("id") productId: Int): Response<Unit>
 
 
 }

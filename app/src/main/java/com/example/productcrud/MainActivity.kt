@@ -1,16 +1,16 @@
 package com.example.productcrud
 
-import android.app.Dialog
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import android.widget.EditText
 
 
 class MainActivity : AppCompatActivity() {
@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var apiProducts: ApiProducts
     private lateinit var productAdapter: ProductAdapter
     private lateinit var recyclerView: RecyclerView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,79 +29,226 @@ class MainActivity : AppCompatActivity() {
 
         // Configura el RecyclerView y el adaptador
         recyclerView.layoutManager = LinearLayoutManager(this)
-        productAdapter = ProductAdapter(emptyList())
+
+        // Configura el listener para manejar la eliminación del producto
+        productAdapter = ProductAdapter(emptyList(),
+            onEditClick = { product ->
+                showEditDialog(product)
+            },
+            onDeleteClick = { product ->
+                showDeleteConfirmationDialog(product.id)
+            }
+        )
+
         recyclerView.adapter = productAdapter
 
-        // Realiza la carga inicial de productos
+        // Realiza la carga de todos los productos
         getProducts()
 
-        val btnCreateProduct: Button = findViewById(R.id.buttonCreateProduct)
-        btnCreateProduct.setOnClickListener {
-            showCreateProductDialog()
+
+        val btnCreate = findViewById<Button>(R.id.btnCreate)
+        btnCreate.setOnClickListener {
+            showEditDialog(null)
         }
+
     }
 
     private fun getProducts() {
         lifecycleScope.launch {
             try {
                 val productList = apiProducts.getProducts()
-                productAdapter.updateProductList(productList)
+                productAdapter.updateData(productList)
             } catch (e: Exception) {
                 Log.e("ooooo", "getProducts Exception: ${e.message}")
             }
         }
     }
 
-    private fun showCreateProductDialog() {
-        val dialog = Dialog(this)
-        dialog.setContentView(R.layout.activity_main)
+    private fun showEditDialog(product: Product?) {
+        val builder = AlertDialog.Builder(this)
+        val view = layoutInflater.inflate(R.layout.form_product, null)
 
-        val nameEditText = dialog.findViewById<EditText>(R.id.editTextName)
-        val descriptionEditText = dialog.findViewById<EditText>(R.id.editTextDescription)
-        val priceEditText = dialog.findViewById<EditText>(R.id.editTextPrice)
-        val quantityEditText = dialog.findViewById<EditText>(R.id.editTextQuantity)
-        val statusEditText = dialog.findViewById<EditText>(R.id.editTextStatus)
-        val subcategoryIdEditText = dialog.findViewById<EditText>(R.id.editTextSubcategoryId)
-        val btnCreateProduct = dialog.findViewById<Button>(R.id.buttonCreateProduct)
+        val nameEditText = view.findViewById<EditText>(R.id.editTextName)
+        val descriptionEditText = view.findViewById<EditText>(R.id.editTextDescription)
+        val priceEditText = view.findViewById<EditText>(R.id.editTextPrice)
+        val quantityEditText = view.findViewById<EditText>(R.id.editTextQuantity)
+        val statusEditText = view.findViewById<EditText>(R.id.editTextStatus)
+        val subcategoryIdEditText = view.findViewById<EditText>(R.id.editTextSubcategoryId)
 
-        btnCreateProduct.setOnClickListener {
-            val name = nameEditText.text.toString()
-            val description = descriptionEditText.text.toString()
-            val price = priceEditText.text.toString().toDouble()
-            val quantity = quantityEditText.text.toString().toInt()
-            val status = statusEditText.text.toString().toInt()
-            val subcategoryId = subcategoryIdEditText.text.toString().toIntOrNull() ?: 0
-
-            val newProduct = Product(
-                id = 0,
-                name = name,
-                description = description,
-                price = price,
-                quantity = quantity,
-                status = status,
-                image_path = "",
-                subcategory_id = subcategoryId
+        if (product != null) {
+            setProductValuesInForm(
+                product,
+                nameEditText,
+                descriptionEditText,
+                priceEditText,
+                quantityEditText,
+                statusEditText,
+                subcategoryIdEditText
             )
-
-            createProduct(newProduct)
-
-            dialog.dismiss()
         }
 
+        builder.setView(view)
+            .setPositiveButton("Guardar Cambios") { _, _ ->
+                if (product == null) {
+                    createProductFromForm(
+                        nameEditText,
+                        descriptionEditText,
+                        priceEditText,
+                        quantityEditText,
+                        statusEditText,
+                        subcategoryIdEditText
+                    )
+                } else {
+                    updateProductFromForm(
+                        product,
+                        nameEditText,
+                        descriptionEditText,
+                        priceEditText,
+                        quantityEditText,
+                        statusEditText,
+                        subcategoryIdEditText
+                    )
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+
+        val dialog = builder.create()
         dialog.show()
     }
 
-    private fun createProduct(product: Product) {
+
+
+    private fun setProductValuesInForm(
+        product: Product,
+        nameEditText: EditText,
+        descriptionEditText: EditText,
+        priceEditText: EditText,
+        quantityEditText: EditText,
+        statusEditText: EditText,
+        subcategoryIdEditText: EditText
+    ) {
+        nameEditText.setText(product.name)
+        descriptionEditText.setText(product.description)
+        priceEditText.setText(product.price.toString())
+        quantityEditText.setText(product.quantity.toString())
+        statusEditText.setText(product.status.toString())
+        subcategoryIdEditText.setText(product.subcategory_id.toString())
+    }
+
+    private fun createProductFromForm(
+        nameEditText: EditText,
+        descriptionEditText: EditText,
+        priceEditText: EditText,
+        quantityEditText: EditText,
+        statusEditText: EditText,
+        subcategoryIdEditText: EditText
+    ) {
+        val newProduct = Product(
+            id = 0,
+            name = nameEditText.text.toString(),
+            description = descriptionEditText.text.toString(),
+            image_path = "",
+            price = priceEditText.text.toString().toDouble(),
+            quantity = quantityEditText.text.toString().toInt(),
+            status = statusEditText.text.toString().toInt(),
+            subcategory_id = subcategoryIdEditText.text.toString().toInt()
+        )
+
+        createProduct(newProduct)
+    }
+
+    private fun updateProductFromForm(
+        product: Product,
+        nameEditText: EditText,
+        descriptionEditText: EditText,
+        priceEditText: EditText,
+        quantityEditText: EditText,
+        statusEditText: EditText,
+        subcategoryIdEditText: EditText
+    ) {
+        product.updateFromForm(
+            nameEditText.text.toString(),
+            descriptionEditText.text.toString(),
+            priceEditText.text.toString().toDouble(),
+            quantityEditText.text.toString().toInt(),
+            statusEditText.text.toString().toInt(),
+            subcategoryIdEditText.text.toString().toInt()
+        )
+
+        updateProduct(product)
+    }
+
+
+
+    private fun createProduct(newProduct: Product) {
         lifecycleScope.launch {
             try {
-                val response = apiProducts.createProduct(product)
+                val response = apiProducts.createProduct(newProduct)
+
                 if (response.isSuccessful) {
+                    // Producto creado con éxito
+                    // Puedes actualizar la lista de productos o realizar otras acciones si es necesario
                     getProducts()
+                    Toast.makeText(applicationContext, "Producto creado correctamente", Toast.LENGTH_SHORT).show()
                 } else {
-                    Log.e("ooooo", "createProduct Error: ${response.message()}")
+                    Toast.makeText(applicationContext, "Error al crear el producto", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("ooooo", "createProduct Exception: ${e.message}")
+                Toast.makeText(applicationContext, "Error al crear el producto", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateProduct(product: Product) {
+        lifecycleScope.launch {
+            try {
+                val response = apiProducts.updateProduct(product.id.toString(), product.copy(image_path = ""))
+
+                if (response.isSuccessful) {
+                    getProducts()
+                } else {
+                    Toast.makeText(applicationContext, "Error al actualizar el producto", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "updateProduct Exception: ${e.message}")
+                Toast.makeText(applicationContext, "Error al actualizar el producto", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+    }
+
+
+
+    private fun showDeleteConfirmationDialog(productId: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar producto")
+            .setMessage("¿Estás seguro de que deseas eliminar este producto?")
+            .setPositiveButton("Sí") { _, _ ->
+                deleteProduct(productId)
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun deleteProduct(productId: Int) {
+        lifecycleScope.launch {
+            try {
+                val response = apiProducts.deleteProduct(productId)
+
+                if (response.isSuccessful) {
+                    // Actualiza la lista después de la eliminación
+                    getProducts()
+                    Toast.makeText(applicationContext, "Producto eliminado correctamente", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(applicationContext, "Error al eliminar el producto", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ooooo", "deleteProduct Exception: ${e.message}")
+                Toast.makeText(applicationContext, "Error al eliminar el producto", Toast.LENGTH_SHORT).show()
             }
         }
     }
