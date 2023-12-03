@@ -107,5 +107,8 @@ class ProductAdapter(private var productList: List<Product>) : RecyclerView.Adap
         dialog.show()
     }
 
-
+    fun updateProductList(newList: List<Product>) {
+        productList = newList
+        notifyDataSetChanged()
+    }
 }

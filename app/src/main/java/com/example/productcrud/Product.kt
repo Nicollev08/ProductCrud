@@ -8,5 +8,5 @@ data class Product(
     var price: Double,
     var quantity: Int,
     var status: Int,
-    var subcategory_id: Int,
+    var subcategory_id: Int
 )

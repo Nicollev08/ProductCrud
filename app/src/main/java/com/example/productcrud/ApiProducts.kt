@@ -15,8 +15,7 @@ interface ApiProducts {
     suspend fun getProducts(): List<Product>
 
     @POST("/api/products")
-    suspend fun createProduct(@Body body: JsonObject): Response<JsonObject>
-
+    suspend fun createProduct(@Body product: Product): Response<Product>
     @PUT("/api/products/{id}")
     suspend fun updateProduct(@Path("id") id: String, @Body body:JsonObject): Response<JsonObject>
 
