@@ -9,10 +9,15 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Tus otros elementos EditText -->
+
         <EditText
             android:id="@+id/editTextName"
             android:layout_width="match_parent"
@@ -53,24 +58,34 @@
             android:inputType="number"
             android:hint="ID de la subcategoría"/>
 
+        <!-- ImageView para mostrar la imagen seleccionada -->
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/darker_gray"
+            android:scaleType="centerCrop"/>
+
+        <!-- Botón para seleccionar imagen -->
         <Button
             android:id="@+id/btnSelectImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Seleccionar Imagen"
-            android:layout_below="@id/editTextSubcategoryId"
-        android:layout_marginTop="16dp"/>
+            android:layout_marginTop="16dp"
+            android:onClick="onSelectImageClick"/>
 
-
+        <!-- Botón para guardar -->
         <Button
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Guardar"
-            android:layout_below="@id/btnSelectImage"
-        android:layout_marginTop="16dp"/>
-
+            android:layout_marginTop="16dp"
+            android:onClick="onSaveClick"/>
     </LinearLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
