@@ -62,6 +62,22 @@
             android:inputType="number"
             android:hint="ID de la subcategoría"/>
 
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/darker_gray"
+            android:scaleType="centerCrop"/>
+        <!-- Botón para seleccionar imagen -->
+        <Button
+            android:id="@+id/btnSelectImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar Imagen"
+            android:layout_marginTop="16dp"
+            android:onClick="onSelectImageClick"/>
+
 
     </LinearLayout>
 

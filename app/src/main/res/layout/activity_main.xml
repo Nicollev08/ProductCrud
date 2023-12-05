@@ -18,7 +18,8 @@
             android:id="@+id/btnCreate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nuevo producto"/>
+            android:text="Nuevo producto"
+            android:onClick="onCreateProductClick"/>
 
     </LinearLayout>
 

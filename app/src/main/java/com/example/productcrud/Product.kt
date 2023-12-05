@@ -1,16 +1,20 @@
 package com.example.productcrud
 
-data class Product(
-    var id: Int,
-    var name: String,
-    var description: String,
-    var image_path: String,
-    var price: Double,
-    var quantity: Int,
-    var status: Int,
-    var subcategory_id: Int
+import com.google.gson.annotations.SerializedName
 
-){
+data class Product(
+    @SerializedName("id") var id: Int,
+    @SerializedName("name") var name: String,
+    @SerializedName("description") var description: String,
+    @SerializedName("image_path") var image_path: String,  // Asegúrate de que este tipo sea correcto
+    @SerializedName("price") var price: Double,
+    @SerializedName("quantity") var quantity: Int,
+    @SerializedName("status") var status: Int,
+    @SerializedName("subcategory_id") var subcategory_id: Int
+) {
+    constructor() : this(0, "", "", "", 0.0, 0, 0, 0)
+
+
     fun updateFromForm(
         name: String,
         description: String,
