@@ -35,7 +35,10 @@ interface ApiProducts {
 
 
     @PUT("/api/products/{id}")
-    suspend fun updateProduct(@Path("id") id: String, @Body body:JsonObject): Response<JsonObject>
+    suspend fun updateProduct(
+        @Path("id") id: String,
+        @Body requestBody: RequestBody
+    ): Response<JsonObject>
 
     @DELETE("/api/products/{id}")
     suspend fun deleteProduct(@Path("id") productId: Int): Response<Unit>
