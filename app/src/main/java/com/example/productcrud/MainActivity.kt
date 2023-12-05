@@ -2,18 +2,12 @@ package com.example.productcrud
 
 
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.VectorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -31,21 +25,18 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
-import androidx.documentfile.provider.DocumentFile
-import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.example.productcrud.databinding.ActivityMainBinding
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.File
-import java.io.IOException
-import java.io.InputStream
 import android.Manifest
 import android.app.Dialog
-import android.content.Context
 import android.database.Cursor
+import androidx.lifecycle.LifecycleCoroutineScope
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okio.IOException
 
 
 class MainActivity : AppCompatActivity() {
@@ -59,6 +50,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var dialog: Dialog
+
+
 
 
 
@@ -80,19 +73,29 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         apiProducts = RetrofitHelper.getInstance().create(ApiProducts::class.java)
+
+
         recyclerView = findViewById(R.id.recyclerView)
 
         // Configura el RecyclerView y el adaptador
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         // Configura el listener para manejar la eliminación del producto
-        productAdapter = ProductAdapter(emptyList()) { product ->
-            showDeleteConfirmationDialog(product.id)
-        }
+        productAdapter = ProductAdapter(emptyList(),
+            onEditClick = { product ->
+                showEditDialog(product)
+            },
+            onDeleteClick = { product ->
+                showDeleteConfirmationDialog(product.id)
+            }
+        )
         recyclerView.adapter = productAdapter
 
         // Realiza la carga inicial de productos
         getProducts()
+
+
+
 
         dialog = Dialog(this@MainActivity)
         dialog.setContentView(R.layout.modal_form)
@@ -107,6 +110,93 @@ class MainActivity : AppCompatActivity() {
             setupViews()
         }
     }
+
+    private fun showEditDialog(product: Product) {
+        // Inflar tu diseño del diálogo de edición aquí...
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.update_product)
+        val nameEditText = dialog.findViewById<EditText>(R.id.nameEditText)
+        val descriptionEditText = dialog.findViewById<EditText>(R.id.descriptionEditText)
+        val priceEditText = dialog.findViewById<EditText>(R.id.priceEditText)
+        val quantityEditText = dialog.findViewById<EditText>(R.id.quantityEditText)
+        val statusEditText = dialog.findViewById<EditText>(R.id.statusEditText)
+        val subcategoryIdEditText = dialog.findViewById<EditText>(R.id.subcategoryIdEditText)
+
+
+        nameEditText.setText(product.name)
+        descriptionEditText.setText(product.description)
+        priceEditText.setText(product.price.toString())
+        quantityEditText.setText(product.quantity.toString())
+        statusEditText.setText(product.status.toString())
+        subcategoryIdEditText.setText(product.subcategory_id.toString())
+
+        // Actualiza el producto desde el formulario
+
+        val btnSaveChanges = dialog.findViewById<Button>(R.id.btnSaveChanges)
+        btnSaveChanges.setOnClickListener {
+            // Obtén referencias a tus EditText en el diálogo
+            val nameEditText = dialog.findViewById<EditText>(R.id.nameEditText)
+            val descriptionEditText = dialog.findViewById<EditText>(R.id.descriptionEditText)
+            val priceEditText = dialog.findViewById<EditText>(R.id.priceEditText)
+            val quantityEditText = dialog.findViewById<EditText>(R.id.quantityEditText)
+            val statusEditText = dialog.findViewById<EditText>(R.id.statusEditText)
+            val subcategoryIdEditText = dialog.findViewById<EditText>(R.id.subcategoryIdEditText)
+            // ... Obtén referencias a otros EditText
+
+            updateProductFromForm(product, nameEditText, descriptionEditText, priceEditText, quantityEditText, statusEditText, subcategoryIdEditText)
+
+            // Cierra el diálogo después de guardar
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun updateProductFromForm(
+        product: Product,
+        nameEditText: EditText,
+        descriptionEditText: EditText,
+        priceEditText: EditText,
+        quantityEditText: EditText,
+        statusEditText: EditText,
+        subcategoryIdEditText: EditText
+    ) {
+        product.updateFromForm(
+            nameEditText.text.toString(),
+            descriptionEditText.text.toString(),
+            priceEditText.text.toString().toDouble(),
+            quantityEditText.text.toString().toInt(),
+            statusEditText.text.toString().toInt(),
+            subcategoryIdEditText.text.toString().toInt()
+        )
+
+        // Llama a la función de actualización de la actividad principal
+        updateProduct(product)
+    }
+
+    private fun updateProduct(product: Product) {
+        lifecycleScope.launch {
+            try {
+                val response = apiProducts.updateProduct(product.id.toString(), product.copy(image_path = ""))
+
+                if (response.isSuccessful) {
+                    getProducts()
+                } else {
+                    Toast.makeText(applicationContext, "Error al actualizar el producto", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "updateProduct Exception: ${e.message}")
+                Toast.makeText(applicationContext, "Error al actualizar el producto", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
+
+
+
+
+
 
     private fun setupViews() {
         val btnOpenModal: Button = findViewById(R.id.btnOpenModal)
@@ -356,6 +446,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
 
 }

@@ -61,6 +61,8 @@ dependencies {
 
     implementation ("com.squareup.okio:okio:3.0.0")
 
+    implementation ("com.github.bumptech.glide:glide:4.12.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
     implementation ("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.1")
 

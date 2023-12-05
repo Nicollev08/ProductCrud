@@ -1,6 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Puedes agregar un ImageView para mostrar la imagen actual del producto -->
+    <ImageView
+        android:id="@+id/imageViewInUpdateDialog"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="centerCrop" />
+
+    <!-- Botón para seleccionar una nueva imagen -->
+    <Button
+        android:id="@+id/btnSelectImageInUpdateModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Image" />
+
+    <!-- Campos de texto para editar la información del producto -->
+    <EditText
+        android:id="@+id/editTextNameInUpdateModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product Name" />
+
+    <EditText
+        android:id="@+id/editTextDescriptionInUpdateModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product Description" />
+
+    <EditText
+        android:id="@+id/editTextQuantityInModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product Name" />
+    <EditText
+        android:id="@+id/editTextPriceInModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product Name" />
+    <EditText
+        android:id="@+id/editTextSubcategoryIdInModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product Name" />
+    <EditText
+        android:id="@+id/editTextStatusInModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Product Name" />
+    <!-- Agrega más campos según sea necesario para otros atributos del producto -->
+
+    <!-- Botón para guardar la actualización -->
+    <Button
+        android:id="@+id/btnSaveInUpdateModal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Update" />
+
+</LinearLayout>

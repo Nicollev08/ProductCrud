@@ -1,23 +1,37 @@
 package com.example.productcrud
 import android.app.Dialog
+import android.content.ContentResolver
 import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
+private lateinit var apiProducts: ApiProducts
 class ProductAdapter(
     private var productList: List<Product>,
-    private var onItemClick: (Product) -> Unit
+    private var onEditClick: (Product) -> Unit,
+    private var onDeleteClick: (Product) -> Unit
+
+
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
-    fun setOnItemClickListener(listener: (Product) -> Unit) {
-        onItemClick = listener
-    }
 
     fun updateData(newProductList: List<Product>) {
         productList = newProductList
@@ -54,56 +68,18 @@ class ProductAdapter(
         val context = holder.itemView.context
 
         holder.btnEdit.setOnClickListener {
-            mostrarModal(context, product)
+            onEditClick(product)
         }
 
         holder.btnDelete.setOnClickListener {
-            onItemClick(product)
+            onDeleteClick(product)
         }
     }
+
+
 
     override fun getItemCount(): Int {
         return productList.size
     }
-
-    private fun mostrarModal(context: Context, product: Product) {
-        val dialog = Dialog(context)
-        dialog.setContentView(R.layout.update_product)
-
-        val idEditText = dialog.findViewById<TextInputEditText>(R.id.id)
-        val nameEditText = dialog.findViewById<TextInputEditText>(R.id.name)
-        val descriptionEditText = dialog.findViewById<TextInputEditText>(R.id.description)
-        val priceEditText = dialog.findViewById<TextInputEditText>(R.id.price)
-        val quantityEditText = dialog.findViewById<TextInputEditText>(R.id.quantity)
-        val statusEditText = dialog.findViewById<TextInputEditText>(R.id.status)
-        val subcategoryIdEditText = dialog.findViewById<TextInputEditText>(R.id.subcategory_id)
-
-        idEditText.setText(product.id.toString())
-        nameEditText.setText(product.name)
-        descriptionEditText.setText(product.description)
-        priceEditText.setText(product.price.toString())
-        quantityEditText.setText(product.quantity.toString())
-        statusEditText.setText(product.status.toString())
-        subcategoryIdEditText.setText(product.subcategory_id.toString())
-
-        val btnSaveChanges = dialog.findViewById<Button>(R.id.btnSaveChanges)
-        btnSaveChanges.setOnClickListener {
-            product.id = idEditText.text.toString().toInt()
-            product.name = nameEditText.text.toString()
-            product.description = descriptionEditText.text.toString()
-            product.price = priceEditText.text.toString().toDouble()
-            product.quantity = quantityEditText.text.toString().toInt()
-            product.status = statusEditText.text.toString().toInt()
-            product.subcategory_id = subcategoryIdEditText.text.toString().toInt()
-
-            // Puedes agregar aquí la lógica para guardar los cambios en tu base de datos o realizar otras acciones
-            // ...
-
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
-
 
 }
